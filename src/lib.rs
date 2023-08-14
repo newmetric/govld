@@ -1,6 +1,7 @@
 mod patterns;
 mod patch;
 pub mod manifest;
+use log::{info};
 
 use std::cell::RefCell;
 use patch::parser::Parser;
@@ -21,11 +22,14 @@ pub fn try_patch(vendor_dir: &str, manifest: Manifest) -> Option<Result> {
 
     // figure out actual package name
     let code_path = format!("{}/{}", vendor_dir, manifest.file);
-    let mut code = std::fs::read_to_string(code_path).expect("error opening file");
+    let mut code = std::fs::read_to_string(&code_path).unwrap_or_else(|_| panic!("error opening file: {}", &code_path));
     let package_parser = Parser::<patterns::module_decl::ModuleDeclPattern>::new(code.as_str());
 
-    let module = package_parser.find_first_match().expect("error finding match");
+    let module = package_parser.find_first_match().unwrap_or_else(|| panic!("error finding module declaration"));
     let module_name = module.name;
+
+    info!("patching file: {}", &code_path);
+    info!("package found: {}", &module_name);
 
     // for each patch, find the target and patch it
     for manifest_patch in manifest.patch {
@@ -47,6 +51,8 @@ pub fn try_patch(vendor_dir: &str, manifest: Manifest) -> Option<Result> {
             .find_and_patch(|pat| {
                 let is_match = pat.is_match(&target_pattern);
                 if is_match {
+                    info!("found matching pattern: {}", &pat.name);
+
                     patch.borrow_mut().push_str(manifest_patch.patch.as_str());
                     patch.borrow_mut().push('\n');
                 }
@@ -57,6 +63,7 @@ pub fn try_patch(vendor_dir: &str, manifest: Manifest) -> Option<Result> {
         code = next.unwrap_or_else(|| panic!("no matching pattern or function {} found", &target_pattern.name));
     }
 
+    // get patch buf
     let patch = patch.borrow().clone();
 
     // slightly modify manifest.file into {}_patched.go

@@ -23,7 +23,7 @@ impl Pattern for ModuleDeclPattern {
         S_EXP
     }
 
-    fn replace(matched: &tree_sitter::QueryMatch, _: &String) -> String {
+    fn replace(_: &tree_sitter::QueryMatch, _: &String) -> String {
         panic!("ModuleDeclPattern::replace() not implemented")
     }
 
