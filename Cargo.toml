@@ -1,0 +1,13 @@
+[package]
+name = "govld"
+version = "0.1.0"
+edition = "2021"
+exclude = ["benchmarks", "examples", "bindings", "scripts", "experiments"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0.183", features = ["derive"] }
+serde_yaml = "0.9.25"
+tree-sitter = "0.20.10"
+tree-sitter-go = "0.20.0"
+
