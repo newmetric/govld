@@ -1,23 +1,17 @@
 pub mod func_decl;
 pub mod module_decl;
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum Patterns {
-    FunctionDecl,
-}
-
-impl From<&str> for Patterns {
-    fn from(s: &str) -> Self {
-        match s {
-            "function_declaration" => Patterns::FunctionDecl,
-            _ => panic!("Unknown pattern: {}", s),
-        }
-    }
-}
+pub mod method_decl;
+mod import_decl;
 
 pub trait Pattern where Self: Sized {
-    fn from_match(matched: &tree_sitter::QueryMatch, code: &String) -> Self;
+    // ident returns whatever human-readable identifier for the pattern.
+    fn ident(&self) -> String;
+
+    // sexp returns S_EXP for the pattern.
     fn sexp() -> &'static str;
-    fn replace(matched: &tree_sitter::QueryMatch, codebuf: &String) -> String;
+
+    // hehe
+    fn from_match(matched: &tree_sitter::QueryMatch, code: &str) -> Self;
+    fn replace(matched: &tree_sitter::QueryMatch, codebuf: &str) -> String;
     fn is_match(&self, other: &Self) -> bool;
 }

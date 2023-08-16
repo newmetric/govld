@@ -2,7 +2,10 @@
 file: github.com/fake-organization/pkg_b/internal/module.go
 patch:
   - pattern: function_declaration
-    patch: |
+    imports:
+      - alias: aaa
+        path: github.com/fake-organization/pkg_a
+    code: |
       func say() string {
           return "World"
       }

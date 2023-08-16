@@ -11,7 +11,15 @@ pub struct ModuleDeclPattern {
 }
 
 impl Pattern for ModuleDeclPattern {
-    fn from_match(matched: &tree_sitter::QueryMatch, code: &String) -> Self {
+    fn ident(&self) -> String {
+        self.name.clone()
+    }
+
+    fn sexp() -> &'static str {
+        S_EXP
+    }
+
+    fn from_match(matched: &tree_sitter::QueryMatch, code: &str) -> Self {
         let package_decl = &code[matched.captures[0].node.byte_range()];
 
         Self {
@@ -19,11 +27,7 @@ impl Pattern for ModuleDeclPattern {
         }
     }
 
-    fn sexp() -> &'static str {
-        S_EXP
-    }
-
-    fn replace(_: &tree_sitter::QueryMatch, _: &String) -> String {
+    fn replace(_: &tree_sitter::QueryMatch, _: &str) -> String {
         panic!("ModuleDeclPattern::replace() not implemented")
     }
 

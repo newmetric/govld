@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::{PathBuf};
 use std::process::{Command, Stdio};
 use clap::Parser;
@@ -52,25 +53,72 @@ fn main() {
 
     // for each patch manifest file, try to patch
     // define code buf cache to avoid re-reading the same file
-    // and to store patched results
     let fsb = &mut FsBuffer::new(vendor_dir);
 
+    // patches is a global buffer for all patches to be made
+    let patches: Vec<(String, String)> = Vec::new();
+    let imports: Vec<(String, String)> = Vec::new();
+    let safe_ranges: Vec<(String, std::ops::Range<usize>)> = Vec::new();
+
     // iterate over all manifest files, try patch
-    for path in patch_manifest_files {
-        // read manifest
-        let manifest_path = std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("error opening file: {}", &path.to_str().unwrap()));
-        let manifest: Manifest = serde_yaml::from_str(manifest_path.as_str()).unwrap_or_else(|_| panic!("error parsing manifest file: {}", &path.to_str().unwrap()));
+    let (fsb, patches, imports, safe_ranges) = patch_manifest_files.iter().fold(
+        (fsb, patches, imports, safe_ranges),
+        |
+            (fsb, mut patches, mut imports, mut safe_ranges),
+            path
+        | {
+            // read manifest
+            let manifest_path = std::fs::read_to_string(path).unwrap_or_else(|_| panic!("error opening file: {}", &path.to_str().unwrap()));
+            let manifest: Manifest = serde_yaml::from_str(manifest_path.as_str()).unwrap_or_else(|_| panic!("error parsing manifest file: {}", &path.to_str().unwrap()));
 
-        info!("processing {}", manifest.file);
+            info!("processing {}", &manifest.file);
 
-        let result = try_patch(fsb, manifest);
-        let result = result.unwrap_or_else(|| panic!("error patching file: {}", path.to_str().unwrap()));
+            // load code from fsb (loads from file if this is the first occurrence)
+            let code = fsb.load(manifest.file.to_owned());
 
-        // update code (with __replaced__ patches)
-        fsb.update(result.path.clone(), result.code);
+            // try patching
+            let result = try_patch(code, &manifest)
+                .unwrap_or_else(|| panic!("error patching file: {}", path.to_str().unwrap()));
 
-        // append patches
-        fsb.update_patch(result.module_name, result.patch_path.clone(), result.patch);
+            // update code (with __replaced__ modifications)
+            fsb.update(&manifest.file.to_owned(), &result.code.to_owned());
+
+            // collect patches into (path, patch)
+            patches.push((manifest.file.to_owned(), result.patches.join("\n")));
+
+            // collect imports into (path, import)
+            imports.push((manifest.file.to_owned(), result.imports.join("\n")));
+
+            safe_ranges.push((manifest.file.to_owned(), result.safe_ranges));
+
+            // fold over...
+            (fsb, patches, imports)
+        }
+    );
+
+    // apply imports to fsb
+    // first, collect imports to Vec<(Path, Vec<Import>)>
+    let imports = imports.iter().fold(
+        HashMap::<&str, Vec<&str>>::new(),
+        | mut map, (path, import) | {
+            map.entry(path).or_default().push(import);
+            map
+        }
+    );
+
+    for (path, imports_collected) in imports {
+        let import_statements = vec![
+            "import (",
+            format!("\t{}", imports_collected.join("\n")).as_str(),
+            ")",
+        ].join("\n");
+
+        fsb.apply_patch(path, &import_statements);
+    }
+
+    // apply patches to fsb
+    for (path, patch) in patches {
+        fsb.apply_patch(&path, &patch);
     }
 
     // actually write to file

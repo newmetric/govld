@@ -15,7 +15,6 @@ impl FsBuffer {
         }
     }
 
-
     pub fn load(&mut self, file: String) -> String {
         match self.inner.get(&file) {
             Some(v) => v.clone(),
@@ -34,18 +33,17 @@ impl FsBuffer {
         content
     }
 
-    pub fn update(&mut self, path: String, c: String) {
-        self.inner.insert(path, c);
+    pub fn update(&mut self, path: &str, c: &str) {
+        self.inner.insert(path.to_owned(), c.to_owned());
     }
 
-    pub fn update_patch(&mut self, module_name: String, path: String, c: String) {
-        let content = match self.inner.get(&path) {
-            Some(v) => v.clone(),
-            None => init_patch_package(module_name)
-        };
-        let content = format!("{}\n{}", content, c);
-
-        self.inner.insert(path, content);
+    pub fn apply_patch(&mut self, path: &str, patch: &str) {
+        match self.inner.get_mut(path) {
+            Some(v) => { prepend(v, patch); },
+            None => {
+                panic!("error patching file that was never loaded: {}", &path)
+            }
+        }
     }
 
     fn join_path(&self, prefix: &String, file: &String) -> String {
@@ -60,9 +58,15 @@ impl FsBuffer {
     }
 }
 
-fn init_patch_package(module_name: String) -> String {
-    format!(r#"
-package {module_name}
+fn append(code: &mut String, patch: &str) {
+    *code += "\n";
+    *code += "// Patched by govld. DO NOT EDIT\n";
+    *code += patch;
+}
 
-"#)
+fn prepend(code: &mut String, patch: &str) {
+    code.find("package").map(|pos| {
+        let (a, b) = code.split_at(pos);
+        *code = format!("{}{}{}", a, patch, b);
+    });
 }

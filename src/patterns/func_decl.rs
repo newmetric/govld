@@ -19,7 +19,15 @@ pub struct FunctionDeclPattern {
 }
 
 impl Pattern for FunctionDeclPattern {
-    fn from_match(matched: &tree_sitter::QueryMatch, code: &String) -> Self {
+    fn ident(&self) -> String {
+        self.name.clone()
+    }
+
+    fn sexp() -> &'static str {
+        S_EXP
+    }
+
+    fn from_match(matched: &tree_sitter::QueryMatch, code: &str) -> Self {
         let fn_name = &code[matched.captures[0].node.byte_range()];
         let fn_param_t = &code[matched.captures[1].node.byte_range()];
         let fn_return_t = match matched.captures.get(2) {
@@ -34,15 +42,11 @@ impl Pattern for FunctionDeclPattern {
         }
     }
 
-    fn sexp() -> &'static str {
-        S_EXP
-    }
-
-    fn replace(matched: &tree_sitter::QueryMatch, codebuf: &String) -> String {
+    fn replace(matched: &tree_sitter::QueryMatch, codebuf: &str) -> String {
         let fn_name_capture = matched.captures[0];
         let fn_name = &codebuf[fn_name_capture.node.byte_range()];
 
-        let mut next = codebuf.clone();
+        let mut next = codebuf.to_string();
         next.replace_range(fn_name_capture.node.byte_range(), &format!("{}_{}", fn_name, REPLACE_SUFFIX));
         next
     }
