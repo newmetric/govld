@@ -1,7 +1,14 @@
 # sample patch manifest
 file: github.com/fake-organization/pkg_b/internal/module.go
 patch:
+  # replacing a simple function
   - pattern: function_declaration
+
+    # optionally, you can also add certain imports
+    # below will be rendered as:
+    # import (
+    #   aaa "github.com/fake-organization/pkg_a"
+    # )
     imports:
       - alias: aaa
         path: github.com/fake-organization/pkg_a
@@ -9,11 +16,14 @@ patch:
       func say() string {
           return "World"
       }
+  # replacing a method bound to a struct
   - pattern: method_declaration
     code: |
       func (f Foo) privateMethod() string {
         return "Newmetric was here"
       }
+
+  # replacing struct itself
   - pattern: struct_declaration
     code: |
       type Foo struct {
@@ -21,6 +31,8 @@ patch:
         aaa a.Pointer
         added a.ArbitraryType
       }
+
+  # replacing an empty struct
   - pattern: struct_declaration
     code: |
       type emptyStruct struct {
