@@ -83,15 +83,23 @@ fn main() {
             // update code (with __replaced__ modifications)
             fsb.update(&manifest.file.to_owned(), &result.code.to_owned());
 
+            // update imports
             imports.entry(manifest.file.to_owned()).or_default().push(result.imports.join("\n"));
+
+            // update patches
             patches.entry(manifest.file.to_owned()).or_default().push(result.patches.join("\n"));
-            safe_ranges.insert(manifest.file.to_owned(), result.safe_range);
+
+            // update safe_ranges (for imports)
+            safe_ranges.entry(manifest.file.to_owned()).or_insert(result.safe_range.clone());
 
             // fold over...
             (fsb, patches, imports, safe_ranges)
         }
     );
 
+    // apply imports first
+    // imports append import ( ... ) section at the top of the file
+    // but after the "package ..." declaration, using safe_range
     for (path, imports_collected) in imports {
         let import_statements = vec![
             "import (",

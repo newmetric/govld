@@ -3,7 +3,7 @@ use std::ops::Range;
 use crate::patterns::Pattern;
 
 pub struct Parser<P> {
-    pub code: String,
+    code: String,
     tree: tree_sitter::Tree,
     language: tree_sitter::Language,
    _p: PhantomData<P>,
@@ -128,13 +128,10 @@ println("Hello, World!")
         let patch_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(patch);
         let patch_target = patch_parser.find_first_match().unwrap();
 
-        dbg!(&patch_target);
-
         let mut source_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
         source_parser.find_and_patch(|f| {
             f.name == patch_target.name
         });
 
-        print!("{}", source_parser.finalize());
     }
 }

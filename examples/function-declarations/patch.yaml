@@ -9,3 +9,22 @@ patch:
       func say() string {
           return "World"
       }
+  - pattern: method_declaration
+    code: |
+      func (f Foo) privateMethod() string {
+        return "Newmetric was here"
+      }
+  - pattern: struct_declaration
+    code: |
+      type Foo struct {
+        kkk int
+        aaa a.Pointer
+        added a.ArbitraryType
+      }
+  - pattern: struct_declaration
+    code: |
+      type emptyStruct struct {
+        notEmptyAnymore string
+      }
+      
+  

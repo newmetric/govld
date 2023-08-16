@@ -20,8 +20,13 @@ func say() string {
 }
 
 type Foo struct {
+	kkk int
+	aaa a.Pointer
 }
 
 func (f Foo) privateMethod() string {
 	return "asdf"
+}
+
+type emptyStruct struct {
 }

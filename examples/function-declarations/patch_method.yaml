@@ -1,8 +1,0 @@
-# sample patch manifest for struct
-file: github.com/fake-organization/pkg_b/internal/module.go
-patch:
-  - pattern: method_declaration
-    patch: |
-      func (f Foo) privateMethod() string {
-        return "Newmetric was here"
-      }
