@@ -37,9 +37,18 @@ impl FsBuffer {
         self.inner.insert(path.to_owned(), c.to_owned());
     }
 
-    pub fn apply_patch(&mut self, path: &str, patch: &str) {
+    pub fn append_patch(&mut self, path: &str, patch: &str) {
         match self.inner.get_mut(path) {
-            Some(v) => { prepend(v, patch); },
+            Some(v) => { append(v, patch); },
+            None => {
+                panic!("error patching file that was never loaded: {}", &path)
+            }
+        }
+    }
+
+    pub fn apply_patch_at(&mut self, path: &str, patch: &str, safe_range: &std::ops::Range<usize>, ) {
+        match self.inner.get_mut(path) {
+            Some(v) => { prepend(safe_range, v, patch); },
             None => {
                 panic!("error patching file that was never loaded: {}", &path)
             }
@@ -64,9 +73,14 @@ fn append(code: &mut String, patch: &str) {
     *code += patch;
 }
 
-fn prepend(code: &mut String, patch: &str) {
-    code.find("package").map(|pos| {
-        let (a, b) = code.split_at(pos);
-        *code = format!("{}{}{}", a, patch, b);
-    });
+fn prepend(safe_range: &std::ops::Range<usize>, code: &mut String, patch: &str) {
+    let end = safe_range.end;
+    let patching = format!(r#"
+
+// Patched by govld. DO NOT EDIT
+{patch}
+
+"#);
+
+    code.insert_str(end, patching.as_str());
 }

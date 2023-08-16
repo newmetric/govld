@@ -56,9 +56,9 @@ fn main() {
     let fsb = &mut FsBuffer::new(vendor_dir);
 
     // patches is a global buffer for all patches to be made
-    let patches: Vec<(String, String)> = Vec::new();
-    let imports: Vec<(String, String)> = Vec::new();
-    let safe_ranges: Vec<(String, std::ops::Range<usize>)> = Vec::new();
+    let patches: HashMap<String, Vec<String>> = HashMap::new();
+    let imports: HashMap<String, Vec<String>> = HashMap::new();
+    let safe_ranges: HashMap<String, std::ops::Range<usize>> = HashMap::new();
 
     // iterate over all manifest files, try patch
     let (fsb, patches, imports, safe_ranges) = patch_manifest_files.iter().fold(
@@ -83,26 +83,12 @@ fn main() {
             // update code (with __replaced__ modifications)
             fsb.update(&manifest.file.to_owned(), &result.code.to_owned());
 
-            // collect patches into (path, patch)
-            patches.push((manifest.file.to_owned(), result.patches.join("\n")));
-
-            // collect imports into (path, import)
-            imports.push((manifest.file.to_owned(), result.imports.join("\n")));
-
-            safe_ranges.push((manifest.file.to_owned(), result.safe_ranges));
+            imports.entry(manifest.file.to_owned()).or_default().push(result.imports.join("\n"));
+            patches.entry(manifest.file.to_owned()).or_default().push(result.patches.join("\n"));
+            safe_ranges.insert(manifest.file.to_owned(), result.safe_range);
 
             // fold over...
-            (fsb, patches, imports)
-        }
-    );
-
-    // apply imports to fsb
-    // first, collect imports to Vec<(Path, Vec<Import>)>
-    let imports = imports.iter().fold(
-        HashMap::<&str, Vec<&str>>::new(),
-        | mut map, (path, import) | {
-            map.entry(path).or_default().push(import);
-            map
+            (fsb, patches, imports, safe_ranges)
         }
     );
 
@@ -113,12 +99,17 @@ fn main() {
             ")",
         ].join("\n");
 
-        fsb.apply_patch(path, &import_statements);
+        let safe_range = safe_ranges.get(&path)
+            .unwrap_or_else(|| panic!("error getting safe range for path {}", &path));
+
+        fsb.apply_patch_at(&path,  &import_statements, safe_range);
     }
 
     // apply patches to fsb
-    for (path, patch) in patches {
-        fsb.apply_patch(&path, &patch);
+    for (path, patches) in patches {
+        for patch in patches {
+            fsb.append_patch(&path, &patch);
+        }
     }
 
     // actually write to file
