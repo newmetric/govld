@@ -2,6 +2,7 @@ mod patterns;
 mod patch;
 pub mod manifest;
 pub mod fs_buffer;
+pub mod run;
 
 use log::{info, warn};
 
