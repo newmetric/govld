@@ -1,14 +1,15 @@
 use std::marker::PhantomData;
-use crate::patterns;
+use std::ops::Range;
+use crate::patterns::Pattern;
 
-pub struct Parser<P: patterns::Pattern> {
-    pub code: String,
+pub struct Parser<P> {
+    code: String,
     tree: tree_sitter::Tree,
     language: tree_sitter::Language,
-    _p: PhantomData<P>,
+   _p: PhantomData<P>,
 }
 
-impl <P: patterns::Pattern> Parser<P> {
+impl<P: Pattern> Parser<P> {
     pub fn new(code: &str) -> Self {
         let mut parser = tree_sitter::Parser::new();
         let language = tree_sitter_go::language();
@@ -21,7 +22,7 @@ impl <P: patterns::Pattern> Parser<P> {
             code: String::from(code),
             language,
             tree,
-            _p: Default::default(),
+            _p: PhantomData,
         }
     }
 
@@ -41,6 +42,24 @@ impl <P: patterns::Pattern> Parser<P> {
                 std::iter::once(slice)
             })
             .find_map(|m| Some(P::from_match(&m, &self.code)))
+    }
+
+    pub fn find_next_line(&self) -> Option<Range<usize>> {
+        let mut cursor = tree_sitter::QueryCursor::new();
+        let query = tree_sitter::Query::new(
+            self.language,
+            P::sexp(),
+        ).expect("query is invalid");
+
+        let last = cursor
+            .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
+                let cb = self.code.as_bytes();
+                let slice = &cb[node.byte_range()];
+                std::iter::once(slice)
+            })
+            .last()?;
+
+        Some(last.captures.last()?.node.byte_range())
     }
 
     pub fn find_and_patch<Predicate: Fn(&P) -> bool>(&mut self, predicate: Predicate) -> Option<String> {
@@ -109,13 +128,10 @@ println("Hello, World!")
         let patch_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(patch);
         let patch_target = patch_parser.find_first_match().unwrap();
 
-        dbg!(&patch_target);
-
         let mut source_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
         source_parser.find_and_patch(|f| {
             f.name == patch_target.name
         });
 
-        print!("{}", source_parser.finalize());
     }
 }

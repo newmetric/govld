@@ -18,5 +18,12 @@ impl Manifest {
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct Patch {
     pub pattern: String,
-    pub patch: String,
+    pub imports: Option<Vec<ManifestImport>>,
+    pub code: String,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub struct ManifestImport {
+    pub alias: String,
+    pub path: String,
 }

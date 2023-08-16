@@ -2,23 +2,23 @@ use crate::patterns::{Pattern};
 
 const S_EXP: &str = r#"
 (source_file
-    (function_declaration
-        name: (identifier) @name
+    (method_declaration
+        name: (field_identifier) @name
         parameters: (parameter_list) @params
         result: (type_identifier)? @return
     )
 )+"#;
 
-const REPLACE_SUFFIX: &str = "_replaced_by_function_decl";
+const REPLACE_SUFFIX: &str = "_replaced_by_method_decl";
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct FunctionDeclPattern {
+pub struct MethodDeclPattern {
     pub name: String,
     pub param_t: String,
     pub return_t: String,
 }
 
-impl Pattern for FunctionDeclPattern {
+impl Pattern for MethodDeclPattern {
     fn ident(&self) -> String {
         self.name.clone()
     }
