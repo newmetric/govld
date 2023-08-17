@@ -1,4 +1,4 @@
-use crate::patterns::{Pattern};
+use crate::patterns::Pattern;
 
 const S_EXP: &str = r#"
 (source_file
@@ -7,7 +7,7 @@ const S_EXP: &str = r#"
 )+"#;
 
 pub struct ModuleDeclPattern {
-    pub name: String
+    pub name: String,
 }
 
 impl Pattern for ModuleDeclPattern {
@@ -23,7 +23,7 @@ impl Pattern for ModuleDeclPattern {
         let package_decl = &code[matched.captures[0].node.byte_range()];
 
         Self {
-            name: package_decl.to_string()
+            name: package_decl.to_string(),
         }
     }
 

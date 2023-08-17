@@ -1,12 +1,12 @@
+use crate::patterns::Pattern;
 use std::marker::PhantomData;
 use std::ops::Range;
-use crate::patterns::Pattern;
 
 pub struct Parser<P> {
     code: String,
     tree: tree_sitter::Tree,
     language: tree_sitter::Language,
-   _p: PhantomData<P>,
+    _p: PhantomData<P>,
 }
 
 impl<P: Pattern> Parser<P> {
@@ -14,7 +14,9 @@ impl<P: Pattern> Parser<P> {
         let mut parser = tree_sitter::Parser::new();
         let language = tree_sitter_go::language();
 
-        parser.set_language(language).expect("error loading Go grammar");
+        parser
+            .set_language(language)
+            .expect("error loading Go grammar");
 
         let tree = parser.parse(code, None).unwrap();
 
@@ -30,10 +32,7 @@ impl<P: Pattern> Parser<P> {
     // useful for searching for a single match for a target pattern
     pub fn find_first_match(&self) -> Option<P> {
         let mut cursor = tree_sitter::QueryCursor::new();
-        let query = tree_sitter::Query::new(
-            self.language,
-            P::sexp(),
-        ).expect("query is invalid");
+        let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
 
         cursor
             .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
@@ -41,15 +40,13 @@ impl<P: Pattern> Parser<P> {
                 let slice = &cb[node.byte_range()];
                 std::iter::once(slice)
             })
-            .find_map(|m| Some(P::from_match(&m, &self.code)))
+            .map(|m| P::from_match(&m, &self.code))
+            .next()
     }
 
     pub fn find_next_line(&self) -> Option<Range<usize>> {
         let mut cursor = tree_sitter::QueryCursor::new();
-        let query = tree_sitter::Query::new(
-            self.language,
-            P::sexp(),
-        ).expect("query is invalid");
+        let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
 
         let last = cursor
             .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
@@ -62,12 +59,9 @@ impl<P: Pattern> Parser<P> {
         Some(last.captures.last()?.node.byte_range())
     }
 
-    pub fn find_and_patch<Predicate: Fn(&P) -> bool>(&mut self, predicate: Predicate) -> Option<String> {
+    pub fn find_and_patch(&self, predicate: impl Fn(&P) -> bool) -> Option<String> {
         let mut cursor = tree_sitter::QueryCursor::new();
-        let query = tree_sitter::Query::new(
-            self.language,
-            P::sexp(),
-        ).expect("query is invalid");
+        let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
 
         let next = cursor
             .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
@@ -128,10 +122,7 @@ println("Hello, World!")
         let patch_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(patch);
         let patch_target = patch_parser.find_first_match().unwrap();
 
-        let mut source_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
-        source_parser.find_and_patch(|f| {
-            f.name == patch_target.name
-        });
-
+        let source_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
+        source_parser.find_and_patch(|f| f.name == patch_target.name);
     }
 }

@@ -7,10 +7,10 @@ fn main() {
 
     govld::run::do_run(
         cwd_fix.to_str().unwrap(),
-        govld::run::Args{
+        govld::run::Args {
             vendor_dir: "vendor".to_string(),
             force: true,
             patch_manifest_files: vec!["../patch.yaml".to_string()],
-        }
+        },
     );
 }

@@ -1,4 +1,4 @@
-use crate::patterns::{Pattern};
+use crate::patterns::Pattern;
 
 const S_EXP: &str = r#"
 (source_file
@@ -47,7 +47,10 @@ impl Pattern for MethodDeclPattern {
         let fn_name = &codebuf[fn_name_capture.node.byte_range()];
 
         let mut next = codebuf.to_string();
-        next.replace_range(fn_name_capture.node.byte_range(), &format!("{}_{}", fn_name, REPLACE_SUFFIX));
+        next.replace_range(
+            fn_name_capture.node.byte_range(),
+            &format!("{}_{}", fn_name, REPLACE_SUFFIX),
+        );
         next
     }
 
