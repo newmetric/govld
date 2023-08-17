@@ -57,7 +57,7 @@ impl FsBuffer {
         }
     }
 
-    fn join_path(&self, prefix: &String, file: &String) -> String {
+    fn join_path(&self, prefix: &str, file: &str) -> String {
         PathBuf::from(prefix)
             .join(file)
             .to_str()

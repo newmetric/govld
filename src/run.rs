@@ -25,7 +25,7 @@ pub fn do_run(cwd: &str, args: Args) {
         .init();
 
     // if clean mode, try to do a clean setup
-    safe_check(args.force, &cwd.to_string(), &args.vendor_dir);
+    safe_check(args.force, cwd, &args.vendor_dir);
 
     // organise vendor dir
     let vendor_dir = format!("{}/{}", cwd, args.vendor_dir);
@@ -133,7 +133,7 @@ pub fn do_run(cwd: &str, args: Args) {
     fsb.flush();
 }
 
-fn safe_check(force: bool, cwd: &String, vendor_dir: &String) {
+fn safe_check(force: bool, cwd: &str, vendor_dir: &str) {
     // check if vendor dir exists; fail if yes
     if !force {
         PathBuf::from(vendor_dir).exists().then(|| {
@@ -143,7 +143,7 @@ fn safe_check(force: bool, cwd: &String, vendor_dir: &String) {
     }
 
     // run go mod vendor
-    let _ = Command::new("go")
+    Command::new("go")
         .current_dir(cwd)
         .args(["mod", "vendor"])
         .stdout(Stdio::piped())
