@@ -23,19 +23,19 @@ where
 }
 
 pub fn try_run(pattern: &str, code: String, patch: String) -> Option<String> {
+    macro_rules! run {
+        ($ty: ty) => {
+            run(
+                &mut Parser::<$ty>::new(&code),
+                &mut Parser::<$ty>::new(&patch),
+            )
+        };
+    }
+
     match pattern {
-        "function_declaration" => run(
-            &mut Parser::<func_decl::FunctionDeclPattern>::new(code.as_str()),
-            &mut Parser::new(patch.as_str()),
-        ),
-        "method_declaration" => run(
-            &mut Parser::<method_decl::MethodDeclPattern>::new(code.as_str()),
-            &mut Parser::new(patch.as_str()),
-        ),
-        "struct_declaration" => run(
-            &mut Parser::<struct_decl::StructDeclPattern>::new(code.as_str()),
-            &mut Parser::new(patch.as_str()),
-        ),
+        "function_declaration" => run!(func_decl::FunctionDeclPattern),
+        "method_declaration" => run!(method_decl::MethodDeclPattern),
+        "struct_declaration" => run!(struct_decl::StructDeclPattern),
         _ => panic!("unknown pattern: {}", pattern),
     }
 }
