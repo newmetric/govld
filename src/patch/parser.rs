@@ -59,10 +59,7 @@ impl<P: Pattern> Parser<P> {
         Some(last.captures.last()?.node.byte_range())
     }
 
-    pub fn find_and_patch<Predicate: Fn(&P) -> bool>(
-        &self,
-        predicate: Predicate,
-    ) -> Option<String> {
+    pub fn find_and_patch(&self, predicate: impl Fn(&P) -> bool) -> Option<String> {
         let mut cursor = tree_sitter::QueryCursor::new();
         let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
 
