@@ -25,10 +25,7 @@ where
 pub fn try_run(pattern: &str, code: String, patch: String) -> Option<String> {
     macro_rules! run {
         ($ty: ty) => {
-            run(
-                &mut Parser::<$ty>::new(&code),
-                &mut Parser::<$ty>::new(&patch),
-            )
+            run(&Parser::<$ty>::new(&code), &Parser::<$ty>::new(&patch))
         };
     }
 
@@ -40,10 +37,7 @@ pub fn try_run(pattern: &str, code: String, patch: String) -> Option<String> {
     }
 }
 
-pub fn run<P: Pattern>(
-    source_parser: &mut Parser<P>,
-    target_parser: &mut Parser<P>,
-) -> Option<String> {
+pub fn run<P: Pattern>(source_parser: &Parser<P>, target_parser: &Parser<P>) -> Option<String> {
     source_parser.find_and_patch(|pat| {
         pat.is_match(
             &target_parser

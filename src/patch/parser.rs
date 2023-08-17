@@ -60,7 +60,7 @@ impl<P: Pattern> Parser<P> {
     }
 
     pub fn find_and_patch<Predicate: Fn(&P) -> bool>(
-        &mut self,
+        &self,
         predicate: Predicate,
     ) -> Option<String> {
         let mut cursor = tree_sitter::QueryCursor::new();
@@ -125,7 +125,7 @@ println("Hello, World!")
         let patch_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(patch);
         let patch_target = patch_parser.find_first_match().unwrap();
 
-        let mut source_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
+        let source_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
         source_parser.find_and_patch(|f| f.name == patch_target.name);
     }
 }
