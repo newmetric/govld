@@ -69,7 +69,7 @@ pub fn try_patch(code: String, manifest: &Manifest) -> Result {
                         "no matching pattern found for patch: {}; appending",
                         manifest_patch.code
                     );
-                    code.to_owned()
+                    code
                 },
             };
 
