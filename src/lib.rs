@@ -60,36 +60,34 @@ pub fn try_patch(code: String, manifest: &Manifest) -> Result {
                 manifest_patch.code.to_owned(),
             );
 
-            match run_result {
-                // if match is found, return next_code and list of patches (to be appended at the end of the file)
-                Some(next_code) => {
-                    // collect imports to single import
-                    let import_string = match &manifest_patch.imports {
-                        Some(imports) => imports
-                            .iter()
-                            .map(|imp| {
-                                vec![imp.alias.to_owned(), format!("\"{}\"", imp.path)].join(" ")
-                            })
-                            .collect::<Vec<String>>()
-                            .join("\n"),
-                        None => String::new(),
-                    };
-
-                    imports.push(import_string);
-                    patches.push(manifest_patch.code.to_owned());
-
-                    (next_code, patches, imports)
-                }
-
-                // if no match is found, return the original code and patches
+            // run may have returned None if no matching pattern is found
+            // in this case we just append the patch to the end of the file
+            let next_code = match run_result {
+                Some(next_code) => next_code,
                 None => {
                     warn!(
-                        "no matching pattern found for patch: {}",
+                        "no matching pattern found for patch: {}; appending",
                         manifest_patch.code
                     );
-                    (code, patches, imports)
-                }
-            }
+                    code.to_owned()
+                },
+            };
+
+            let import_string = match &manifest_patch.imports {
+                Some(imports) => imports
+                    .iter()
+                    .map(|imp| {
+                        vec![imp.alias.to_owned(), format!("\"{}\"", imp.path)].join(" ")
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n"),
+                None => String::new(),
+            };
+
+            imports.push(import_string);
+            patches.push(manifest_patch.code.to_owned());
+
+            (next_code, patches, imports)
         },
     );
 

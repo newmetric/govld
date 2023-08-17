@@ -59,6 +59,8 @@ impl<P: Pattern> Parser<P> {
         Some(last.captures.last()?.node.byte_range())
     }
 
+    // find_and_patch replaces original codebuffer if matching pattern is found in the source
+    // otherwise append at the bottom
     pub fn find_and_patch(&self, predicate: impl Fn(&P) -> bool) -> Option<String> {
         let mut cursor = tree_sitter::QueryCursor::new();
         let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
@@ -71,7 +73,6 @@ impl<P: Pattern> Parser<P> {
             })
             .find_map(|m| {
                 let patt = P::from_match(&m, &self.code);
-
                 predicate(&patt).then(|| P::replace(&m, &self.code))
             });
 

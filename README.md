@@ -57,5 +57,24 @@ patch:
       type emptyStruct struct {
         notEmptyAnymore string
       }
+
+  # replacing interface
+  - pattern: interface_declaration
+    code: |
+      type iface interface {
+        A() string
+        B() int
+        C() bool
+      }
+
+  # appending non-existent entry
+  - pattern: interface_declaration
+    code: |
+      type iface_appended interface {
+        A() string
+        B() int
+        C() bool
+        Appended() uint64
+      }
 ```
 

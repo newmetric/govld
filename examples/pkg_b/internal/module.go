@@ -30,3 +30,8 @@ func (f Foo) privateMethod() string {
 
 type emptyStruct struct {
 }
+
+type iface interface {
+	A() string
+	B() int
+}

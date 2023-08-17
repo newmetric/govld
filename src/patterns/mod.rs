@@ -5,6 +5,7 @@ mod import_decl;
 pub mod method_decl;
 pub mod module_decl;
 mod struct_decl;
+mod interface_decl;
 
 pub trait Pattern
 where
@@ -33,6 +34,7 @@ pub fn try_run(pattern: &str, code: String, patch: String) -> Option<String> {
         "function_declaration" => run!(func_decl::FunctionDeclPattern),
         "method_declaration" => run!(method_decl::MethodDeclPattern),
         "struct_declaration" => run!(struct_decl::StructDeclPattern),
+        "interface_declaration" => run!(interface_decl::InterfaceDeclPattern),
         _ => panic!("unknown pattern: {}", pattern),
     }
 }
