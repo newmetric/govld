@@ -1,5 +1,5 @@
+use crate::patterns::Pattern;
 use tree_sitter::QueryMatch;
-use crate::patterns::{Pattern};
 
 pub struct StructDeclPattern {
     pub name: String,
@@ -49,10 +49,10 @@ impl Pattern for StructDeclPattern {
         let struct_name_capture = matched.captures[1];
         let struct_name = &codebuf[struct_name_capture.node.byte_range()];
 
-        let mut next = codebuf.to_string();
+        let mut next = codebuf.to_owned();
         next.replace_range(
             struct_name_capture.node.byte_range(),
-            &format!("{}_{}", struct_name, "_replaced_by_struct_decl")
+            &format!("{}_{}", struct_name, "_replaced_by_struct_decl"),
         );
         next
     }
@@ -64,8 +64,8 @@ impl Pattern for StructDeclPattern {
 
 #[cfg(test)]
 mod tests {
-    use crate::patch::parser::Parser;
     use super::StructDeclPattern;
+    use crate::patch::parser::Parser;
 
     #[test]
     fn test_struct_decl_pattern() {

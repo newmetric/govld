@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use std::path::{PathBuf};
-use std::process::{Command, Stdio};
-use log::{error, info};
 use crate::fs_buffer::FsBuffer;
 use crate::manifest::Manifest;
 use crate::try_patch;
+use log::{error, info};
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::process::{Command, Stdio};
 
 #[derive(clap::Parser, Debug)]
 #[command()]
@@ -20,7 +20,9 @@ pub struct Args {
 
 pub fn do_run(cwd: &str, args: Args) {
     // force info level
-    env_logger::builder().filter_level(log::LevelFilter::Info).init();
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     // if clean mode, try to do a clean setup
     safe_check(args.force, &cwd.to_string(), &args.vendor_dir);
@@ -29,14 +31,18 @@ pub fn do_run(cwd: &str, args: Args) {
     let vendor_dir = format!("{}/{}", cwd, args.vendor_dir);
 
     // organise patch files
-    let patch_manifest_files = args.patch_manifest_files.iter()
+    let patch_manifest_files = args
+        .patch_manifest_files
+        .iter()
         .map(|p| {
             let path = PathBuf::new().join(cwd).join(p.clone());
-            path.exists().then(|| path.clone())
-                .unwrap_or_else(|| {
-                    error!("error getting patch manifest file: {}", path.to_str().unwrap());
-                    std::process::exit(127);
-                })
+            path.exists().then(|| path.clone()).unwrap_or_else(|| {
+                error!(
+                    "error getting patch manifest file: {}",
+                    path.to_str().unwrap()
+                );
+                std::process::exit(127);
+            })
         })
         .collect::<Vec<_>>();
 
@@ -55,13 +61,14 @@ pub fn do_run(cwd: &str, args: Args) {
     // iterate over all manifest files, try patch
     let (fsb, patches, imports, safe_ranges) = patch_manifest_files.iter().fold(
         (fsb, patches, imports, safe_ranges),
-        |
-            (fsb, mut patches, mut imports, mut safe_ranges),
-            path
-        | {
+        |(fsb, mut patches, mut imports, mut safe_ranges), path| {
             // read manifest
-            let manifest_path = std::fs::read_to_string(path).unwrap_or_else(|_| panic!("error opening file: {}", &path.to_str().unwrap()));
-            let manifest: Manifest = serde_yaml::from_str(manifest_path.as_str()).unwrap_or_else(|_| panic!("error parsing manifest file: {}", &path.to_str().unwrap()));
+            let manifest_path = std::fs::read_to_string(path)
+                .unwrap_or_else(|_| panic!("error opening file: {}", &path.to_str().unwrap()));
+            let manifest: Manifest =
+                serde_yaml::from_str(manifest_path.as_str()).unwrap_or_else(|_| {
+                    panic!("error parsing manifest file: {}", &path.to_str().unwrap())
+                });
 
             info!("processing {}", &manifest.file);
 
@@ -73,20 +80,28 @@ pub fn do_run(cwd: &str, args: Args) {
                 .unwrap_or_else(|| panic!("error patching file: {}", path.to_str().unwrap()));
 
             // update code (with __replaced__ modifications)
-            fsb.update(&manifest.file.to_owned(), &result.code.to_owned());
+            fsb.update(&manifest.file, &result.code);
 
             // update imports
-            imports.entry(manifest.file.to_owned()).or_default().push(result.imports.join("\n"));
+            imports
+                .entry(manifest.file.to_owned())
+                .or_default()
+                .push(result.imports.join("\n"));
 
             // update patches
-            patches.entry(manifest.file.to_owned()).or_default().push(result.patches.join("\n"));
+            patches
+                .entry(manifest.file.to_owned())
+                .or_default()
+                .push(result.patches.join("\n"));
 
             // update safe_ranges (for imports)
-            safe_ranges.entry(manifest.file.to_owned()).or_insert(result.safe_range.clone());
+            safe_ranges
+                .entry(manifest.file)
+                .or_insert(result.safe_range);
 
             // fold over...
             (fsb, patches, imports, safe_ranges)
-        }
+        },
     );
 
     // apply imports first
@@ -97,12 +112,14 @@ pub fn do_run(cwd: &str, args: Args) {
             "import (",
             format!("\t{}", imports_collected.join("\n")).as_str(),
             ")",
-        ].join("\n");
+        ]
+        .join("\n");
 
-        let safe_range = safe_ranges.get(&path)
+        let safe_range = safe_ranges
+            .get(&path)
             .unwrap_or_else(|| panic!("error getting safe range for path {}", &path));
 
-        fsb.apply_patch_at(&path,  &import_statements, safe_range);
+        fsb.apply_patch_at(&path, &import_statements, safe_range);
     }
 
     // apply patches to fsb
@@ -133,7 +150,6 @@ fn safe_check(force: bool, cwd: &String, vendor_dir: &String) {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap()
-
         // wait for it to end
         .wait_with_output()
         .unwrap();
