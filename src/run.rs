@@ -76,8 +76,7 @@ pub fn do_run(cwd: &str, args: Args) {
             let code = fsb.load(manifest.file.to_owned());
 
             // try patching
-            let result = try_patch(code, &manifest)
-                .unwrap_or_else(|| panic!("error patching file: {}", path.to_str().unwrap()));
+            let result = try_patch(code, &manifest);
 
             // update code (with __replaced__ modifications)
             fsb.update(&manifest.file, &result.code);

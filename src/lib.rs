@@ -25,7 +25,7 @@ pub struct Result {
 /// try_patch
 /// code: original source code
 /// manifest: patch manifest
-pub fn try_patch(code: String, manifest: &Manifest) -> Option<Result> {
+pub fn try_patch(code: String, manifest: &Manifest) -> Result {
     // patches is the buffer for the incremental patches.
     // it collects all the patches that will be applied to the code.
     let patches: Vec<String> = Vec::new();
@@ -94,11 +94,11 @@ pub fn try_patch(code: String, manifest: &Manifest) -> Option<Result> {
     );
 
     // return
-    Some(Result {
+    Result {
         module_name,
         safe_range,
         code: next_code,
         imports: next_imports,
         patches: next_patches,
-    })
+    }
 }
