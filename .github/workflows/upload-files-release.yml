@@ -19,7 +19,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: target/release/govld
-          asset_name: mything
+          asset_name: govld
           tag: ${{ github.ref }}
           overwrite: true
           body: "govld release"
