@@ -14,14 +14,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Build
-        run: cargo build --release
-      - name: Upload binaries to release
+      - name: Build x86 linux
+        run: cargo build --release --target=x86_64-unknown-linux-gnu
+      - name: Upload binaries to release x86 linux
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/release/govld
-          asset_name: govld
+          file: target/x86_64-unknown-linux-gnu/release/govld
+          asset_name: govld_x86_64
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "govld release"
+      - name: Add target aarch64-unknown-linux-gnu
+        run: rustup target add aarch64-unknown-linux-gnu
+      - name: Build arm linux
+        run: cargo build --release --target=aarch64-unknown-linux-gnu
+      - name: Upload binaries to release arm linux
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/aarch64-unknown-linux-gnu/release/govld
+          asset_name: govld_arm64
           tag: ${{ github.ref }}
           overwrite: true
           body: "govld release"
