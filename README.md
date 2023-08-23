@@ -4,6 +4,16 @@
 
 `govld` works by first running `go mod vendor` to bring all dependencies to local, then patching listed files in the manifests provided.
 
+## How to Install?
+
+```bash
+# install rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# install govld
+CARGO_NET_GIT_FETCH_WITH_CLI=true cargo install govld --git https://github.com/newmetric/govld
+```
+
 ## Usage
 
 ```bash
@@ -77,4 +87,3 @@ patch:
         Appended() uint64
       }
 ```
-
