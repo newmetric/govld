@@ -76,6 +76,11 @@ patch:
         B() int
         C() bool
       }
+      
+  # replacing global variable
+  - pattern: variable_declaration
+    code: |
+      var NewlyAdded string
 
   # appending non-existent entry
   - pattern: interface_declaration
