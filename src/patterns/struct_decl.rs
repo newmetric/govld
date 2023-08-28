@@ -61,30 +61,3 @@ impl Pattern for StructDeclPattern {
         self.name == other.name
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::StructDeclPattern;
-    use crate::patch::parser::Parser;
-
-    #[test]
-    fn test_struct_decl_pattern() {
-        let code = r#"
-package internal
-
-type Foo struct {
-	kkk int
-	aaa a.Pointer
-}
-
-type Xyz struct {
-	wtf int
-}
-        "#;
-
-        let p = Parser::<StructDeclPattern>::new(code);
-        let fm = p.find_first_match().unwrap();
-
-        dbg!(fm.name, fm.fields);
-    }
-}
