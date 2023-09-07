@@ -23,6 +23,12 @@ patch:
         return "Newmetric was here"
       }
 
+  - pattern: method_declaration
+    code: |
+      func (f FooButDifferent) privateMethod() string {
+        return "test identical fn names but different receivers"
+      }
+
   # replacing struct itself
   - pattern: struct_declaration
     code: |

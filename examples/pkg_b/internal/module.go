@@ -35,3 +35,9 @@ type iface interface {
 	A() string
 	B() int
 }
+
+type FooButDifferent struct {}
+
+func (f FooButDifferent) privateMethod() string {
+	return ",mmmm"
+}
