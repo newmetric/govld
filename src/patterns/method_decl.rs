@@ -3,11 +3,17 @@ use crate::patterns::Pattern;
 const S_EXP: &str = r#"
 (source_file
     (method_declaration
-        receiver: (parameter_list
+    	receiver: (parameter_list
         	(parameter_declaration
             	name: (identifier) @receiver_name
                 type: (type_identifier) @receiver_type
-            )
+            )?
+            (parameter_declaration
+            	name: (identifier) @receiver_name
+                type: (pointer_type
+                	(type_identifier) @receiver_type
+                )
+            )?
         )
         name: (field_identifier) @name
         parameters: (parameter_list) @params
