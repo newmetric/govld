@@ -6,6 +6,9 @@ use serde::{Deserialize, Serialize};
 pub struct Manifest {
     pub file: String,
     pub patch: Vec<Patch>,
+
+    // optional signifies that the patch is optional
+    pub optional: Option<bool>,
 }
 
 impl Manifest {

@@ -73,33 +73,48 @@ pub fn do_run(cwd: &str, args: Args) {
             info!("processing {}", &manifest.file);
 
             // load code from fsb (loads from file if this is the first occurrence)
-            let code = fsb.load(manifest.file.to_owned());
+            match fsb.try_load(manifest.file.to_owned()) {
+                // handle if patch target file is not found
+                None => {
+                    let is_optional = manifest.optional.unwrap_or_else(|| {
+                        panic!("error loading file: {}", &manifest.file);
+                    });
 
-            // try patching
-            let result = try_patch(code, &manifest);
+                    if is_optional {
+                        info!("skipping optional file: {}", &manifest.file);
+                        return (fsb, patches, imports, safe_ranges);
+                    } else {
+                        panic!("error loading file: {}", &manifest.file);
+                    }
+                }
+                Some(code) => {
+                    // try patching
+                    let result = try_patch(code, &manifest);
 
-            // update code (with __replaced__ modifications)
-            fsb.update(&manifest.file, &result.code);
+                    // update code (with __replaced__ modifications)
+                    fsb.update(&manifest.file, &result.code);
 
-            // update imports
-            imports
-                .entry(manifest.file.to_owned())
-                .or_default()
-                .push(result.imports.join("\n"));
+                    // update imports
+                    imports
+                        .entry(manifest.file.to_owned())
+                        .or_default()
+                        .push(result.imports.join("\n"));
 
-            // update patches
-            patches
-                .entry(manifest.file.to_owned())
-                .or_default()
-                .push(result.patches.join("\n"));
+                    // update patches
+                    patches
+                        .entry(manifest.file.to_owned())
+                        .or_default()
+                        .push(result.patches.join("\n"));
 
-            // update safe_ranges (for imports)
-            safe_ranges
-                .entry(manifest.file)
-                .or_insert(result.safe_range);
+                    // update safe_ranges (for imports)
+                    safe_ranges
+                        .entry(manifest.file)
+                        .or_insert(result.safe_range);
 
-            // fold over...
-            (fsb, patches, imports, safe_ranges)
+                    // fold over...
+                    (fsb, patches, imports, safe_ranges)
+                }
+            }
         },
     );
 

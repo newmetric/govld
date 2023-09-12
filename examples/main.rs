@@ -10,7 +10,10 @@ fn main() {
         govld::run::Args {
             vendor_dir: "vendor".to_string(),
             force: true,
-            patch_manifest_files: vec!["../patch.yaml".to_string()],
+            patch_manifest_files: vec![
+                "../patch.yaml".to_string(),
+                "../patch_optional.yaml".to_string(),
+            ],
         },
     );
 }

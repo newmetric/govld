@@ -1,0 +1,21 @@
+# sample patch manifest
+file: github.com/fake-organization/pkg_xxx/internal/should_not_panic.go
+
+# don't panic even if the file is NOT found
+optional: true
+patch:
+  # replacing a simple function
+  - pattern: function_declaration
+
+    # optionally, you can also add certain imports
+    # below will be rendered as:
+    # import (
+    #   aaa "github.com/fake-organization/pkg_a"
+    # )
+    imports:
+      - alias: aaa
+        path: github.com/fake-organization/pkg_a
+    code: |
+      func say() string {
+          return "World"
+      }

@@ -92,3 +92,26 @@ patch:
         Appended() uint64
       }
 ```
+
+### Optional Manifest
+
+You can make the manifest optional by declaring `optional: true`. Optional manifests won't fail even if the target patch file is not found.
+
+```yaml
+# sample patch manifest
+file: github.com/fake-organization/pkg_xxx/internal/should_not_panic.go
+
+# don't panic even if the file is NOT found
+optional: true
+
+# usual patch...
+patch:
+  # replacing a simple function
+  - pattern: function_declaration
+    code: |
+      func say() string {
+          return "World"
+      }
+
+
+```
