@@ -13,6 +13,7 @@ fn main() {
             patch_manifest_files: vec![
                 "../patch.yaml".to_string(),
                 "../patch_optional.yaml".to_string(),
+                "../patch_optional_but_exists.yaml".to_string(),
             ],
         },
     );

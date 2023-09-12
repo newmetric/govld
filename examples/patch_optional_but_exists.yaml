@@ -1,0 +1,18 @@
+# sample patch manifest
+file: github.com/fake-organization/pkg_b/internal/module.go
+
+# don't panic even if the file is NOT found
+optional: true
+patch:
+  # replacing a simple function
+  - pattern: function_declaration
+
+    # optionally, you can also add certain imports
+    # below will be rendered as:
+    # import (
+    #   aaa "github.com/fake-organization/pkg_a"
+    # )
+    code: |
+      func asdfsadfasdf() string {
+          return "World"
+      }

@@ -82,7 +82,9 @@ pub fn do_run(cwd: &str, args: Args) {
 
                     if is_optional {
                         info!("skipping optional file: {}", &manifest.file);
-                        return (fsb, patches, imports, safe_ranges);
+
+                        // short circuit here
+                        (fsb, patches, imports, safe_ranges)
                     } else {
                         panic!("error loading file: {}", &manifest.file);
                     }
