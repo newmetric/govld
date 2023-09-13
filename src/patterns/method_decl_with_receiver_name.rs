@@ -52,7 +52,9 @@ impl Pattern for MethodDeclPatternWithReceiverName {
     }
 
     fn is_match(&self, other: &Self) -> bool {
-        (self.name == other.name)
+        (self.param_t == other.param_t)
+            && (self.return_t == other.return_t)
+            && (self.name == other.name)
             && (self.receiver_name == other.receiver_name)
             && (self.receiver_type == other.receiver_type)
     }
