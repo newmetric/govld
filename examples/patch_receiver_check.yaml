@@ -1,0 +1,7 @@
+file: github.com/fake-organization/pkg_b/internal/receiver_no_name.go
+patch:
+  - pattern: method_declaration
+    code: |
+      func (Receiver) NoReceiverName(a int) uint64 {
+        return 2
+      }

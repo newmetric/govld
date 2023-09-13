@@ -7,6 +7,8 @@ pub mod method_decl;
 pub mod module_decl;
 mod struct_decl;
 mod variable_decl;
+mod method_decl_with_receiver_name;
+mod method_decl_without_receiver_name;
 
 pub trait Pattern
 where

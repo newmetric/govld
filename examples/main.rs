@@ -14,6 +14,7 @@ fn main() {
                 "../patch.yaml".to_string(),
                 "../patch_optional.yaml".to_string(),
                 "../patch_optional_but_exists.yaml".to_string(),
+                "../patch_receiver_check.yaml".to_string(),
             ],
         },
     );

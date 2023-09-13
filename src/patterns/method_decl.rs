@@ -1,15 +1,15 @@
-use crate::patterns::Pattern;
+use crate::patterns::{method_decl_with_receiver_name, method_decl_without_receiver_name, Pattern};
 
-const S_EXP: &str = r#"
+pub const S_EXP: &str = r#"
 (source_file
     (method_declaration
     	receiver: (parameter_list
         	(parameter_declaration
-            	name: (identifier) @receiver_name
+            	name: (identifier)? @receiver_name
                 type: (type_identifier) @receiver_type
             )?
             (parameter_declaration
-            	name: (identifier) @receiver_name
+            	name: (identifier)? @receiver_name
                 type: (pointer_type
                 	(type_identifier) @receiver_type
                 )
@@ -21,20 +21,20 @@ const S_EXP: &str = r#"
     )
 )+"#;
 
-const REPLACE_SUFFIX: &str = "_replaced_by_method_decl";
+pub const REPLACE_SUFFIX: &str = "_replaced_by_method_decl";
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct MethodDeclPattern {
-    pub receiver_name: String,
-    pub receiver_type: String,
-    pub name: String,
-    pub param_t: String,
-    pub return_t: String,
+pub enum MethodDeclPattern {
+    WithReceiverName(method_decl_with_receiver_name::MethodDeclPatternWithReceiverName),
+    WithoutReceiverName(method_decl_without_receiver_name::MethodDeclPatternWithoutReceiverName),
 }
 
 impl Pattern for MethodDeclPattern {
     fn ident(&self) -> String {
-        self.name.clone()
+        match self {
+            MethodDeclPattern::WithReceiverName(k) => k.name.clone(),
+            MethodDeclPattern::WithoutReceiverName(k) => k.name.clone(),
+        }
     }
 
     fn sexp() -> &'static str {
@@ -42,37 +42,47 @@ impl Pattern for MethodDeclPattern {
     }
 
     fn from_match(matched: &tree_sitter::QueryMatch, code: &str) -> Self {
-        let receiver_name = &code[matched.captures[0].node.byte_range()];
-        let receiver_type = &code[matched.captures[1].node.byte_range()];
-        let fn_name = &code[matched.captures[2].node.byte_range()];
-        let fn_param_t = &code[matched.captures[3].node.byte_range()];
-        let fn_return_t = match matched.captures.get(4) {
-            Some(cap) => &code[cap.node.byte_range()],
-            None => "",
-        };
-
-        Self {
-            receiver_name: receiver_name.to_string(),
-            receiver_type: receiver_type.to_string(),
-            name: fn_name.to_string(),
-            param_t: fn_param_t.to_string(),
-            return_t: fn_return_t.to_string(),
+        match is_receiver_name_present(matched) {
+            true => MethodDeclPattern::WithoutReceiverName(
+                method_decl_without_receiver_name::MethodDeclPatternWithoutReceiverName::from_match(
+                    matched, code,
+                ),
+            ),
+            false => MethodDeclPattern::WithReceiverName(
+                method_decl_with_receiver_name::MethodDeclPatternWithReceiverName::from_match(
+                    matched, code,
+                ),
+            ),
         }
     }
 
     fn replace(matched: &tree_sitter::QueryMatch, codebuf: &str) -> String {
-        let fn_name_capture = matched.captures[2];
-        let fn_name = &codebuf[fn_name_capture.node.byte_range()];
-
-        let mut next = codebuf.to_string();
-        next.replace_range(
-            fn_name_capture.node.byte_range(),
-            &format!("{}_{}", fn_name, REPLACE_SUFFIX),
-        );
-        next
+        match is_receiver_name_present(matched) {
+            true => {
+                method_decl_without_receiver_name::MethodDeclPatternWithoutReceiverName::replace(
+                    matched, codebuf,
+                )
+            }
+            false => method_decl_with_receiver_name::MethodDeclPatternWithReceiverName::replace(
+                matched, codebuf,
+            ),
+        }
     }
 
     fn is_match(&self, other: &Self) -> bool {
-        (self.name == other.name) && (self.receiver_name == other.receiver_name) && (self.receiver_type == other.receiver_type)
+        match self {
+            MethodDeclPattern::WithReceiverName(k) => match other {
+                MethodDeclPattern::WithReceiverName(o) => k.is_match(o),
+                _ => false,
+            },
+            MethodDeclPattern::WithoutReceiverName(k) => match other {
+                MethodDeclPattern::WithoutReceiverName(o) => k.is_match(o),
+                _ => false,
+            },
+        }
     }
+}
+
+fn is_receiver_name_present(matched: &tree_sitter::QueryMatch) -> bool {
+    matched.captures.len() < 5
 }
