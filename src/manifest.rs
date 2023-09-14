@@ -9,6 +9,9 @@ pub struct Manifest {
 
     // optional signifies that the patch is optional
     pub optional: Option<bool>,
+
+    // run this AFTER the patch is applied without errors
+    pub postprocess: Option<Vec<Manifest>>,
 }
 
 impl Manifest {

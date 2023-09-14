@@ -66,8 +66,12 @@ pub fn do_run(cwd: &str, args: Args) {
             let manifest_path = std::fs::read_to_string(path)
                 .unwrap_or_else(|_| panic!("error opening file: {}", &path.to_str().unwrap()));
             let manifest: Manifest =
-                serde_yaml::from_str(manifest_path.as_str()).unwrap_or_else(|_| {
-                    panic!("error parsing manifest file: {}", &path.to_str().unwrap())
+                serde_yaml::from_str(manifest_path.as_str()).unwrap_or_else(|e| {
+                    panic!(
+                        "error parsing manifest file: {} at {}",
+                        e,
+                        &path.to_str().unwrap()
+                    );
                 });
 
             info!("processing {}", &manifest.file);
@@ -76,9 +80,7 @@ pub fn do_run(cwd: &str, args: Args) {
             match fsb.try_load(manifest.file.to_owned()) {
                 // handle if patch target file is not found
                 None => {
-                    let is_optional = manifest.optional.unwrap_or_else(|| {
-                        panic!("error loading file: {}", &manifest.file);
-                    });
+                    let is_optional = manifest.optional.unwrap_or(false);
 
                     if is_optional {
                         info!("skipping optional file: {}", &manifest.file);
@@ -112,6 +114,45 @@ pub fn do_run(cwd: &str, args: Args) {
                     safe_ranges
                         .entry(manifest.file)
                         .or_insert(result.safe_range);
+
+                    // try post processing
+                    if manifest.postprocess.is_some() {
+                        for post in manifest.postprocess.unwrap() {
+                            let is_optional = post.optional.unwrap_or(false);
+                            info!("\tpostprocessing {}", &post.file);
+
+                            match fsb.try_load(post.file.to_owned()) {
+                                None => {
+                                    if !is_optional {
+                                        panic!("error loading postprocess file: {}", &post.file);
+                                    } else {
+                                        info!("skipping optional file: {}", &post.file);
+                                    }
+                                }
+                                Some(f) => {
+                                    let result = try_patch(f, &post);
+
+                                    // update code (with __replaced__ modifications)
+                                    fsb.update(&post.file, &result.code);
+
+                                    // update imports
+                                    imports
+                                        .entry(post.file.to_owned())
+                                        .or_default()
+                                        .push(result.imports.join("\n"));
+
+                                    // update patches
+                                    patches
+                                        .entry(post.file.to_owned())
+                                        .or_default()
+                                        .push(result.patches.join("\n"));
+
+                                    // update safe_ranges (for imports)
+                                    safe_ranges.entry(post.file).or_insert(result.safe_range);
+                                }
+                            }
+                        }
+                    }
 
                     // fold over...
                     (fsb, patches, imports, safe_ranges)

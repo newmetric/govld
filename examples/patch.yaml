@@ -68,3 +68,11 @@ patch:
         C() bool
         Appended() uint64
       }
+
+# run this AFTER all patches are done
+postprocess:
+- file: github.com/fake-organization/pkg_b/internal/postprocess_target.go
+  patch:
+    - pattern: method_declaration
+      code: |
+        func postprocessed() {}
