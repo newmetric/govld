@@ -115,3 +115,32 @@ patch:
 
 
 ```
+
+
+### Postprocess
+
+You can choose to run another batch of patches AFTER a manifest has been successfully processed. Simply append `postprocess` section in the manifest file.
+
+Note that `postprocess` section is another `array` - allowing you to set different targets for postprocessing. the yaml schema is the same as normal patch schema.
+
+```yaml
+
+# run this AFTER all patches are done
+postprocess:
+- file: github.com/fake-organization/pkg_b/internal/postprocess_target.go
+  patch:
+    - pattern: method_declaration
+      code: |
+        func postprocessed() {}
+
+# optional post process
+- file: github.com/fake-organization/pkg_b/internal/postprocess_target_xx.go
+  optional: true
+  patch:
+    - pattern: method_declaration
+      code: |
+        func postprocessed() {}
+```
+
+
+
