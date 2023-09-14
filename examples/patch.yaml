@@ -76,3 +76,12 @@ postprocess:
     - pattern: method_declaration
       code: |
         func postprocessed() {}
+
+# optional post process
+- file: github.com/fake-organization/pkg_b/internal/postprocess_target_xx.go
+  optional: true
+  patch:
+    - pattern: method_declaration
+      code: |
+        func postprocessed() {}
+
