@@ -1,10 +1,11 @@
 use crate::patch::parser::Parser;
 
 pub mod func_decl;
-mod import_decl;
-mod interface_decl;
 pub mod method_decl;
 pub mod module_decl;
+
+mod import_decl;
+mod interface_decl;
 mod struct_decl;
 mod variable_decl;
 
