@@ -6,7 +6,8 @@ pub struct Parser<P> {
     code: String,
     tree: tree_sitter::Tree,
     language: tree_sitter::Language,
-    _p: PhantomData<P>,
+
+    _pattern: PhantomData<P>,
 }
 
 impl<P: Pattern> Parser<P> {
@@ -21,10 +22,10 @@ impl<P: Pattern> Parser<P> {
         let tree = parser.parse(code, None).unwrap();
 
         Self {
-            code: String::from(code),
+            code: code.to_owned(),
             language,
             tree,
-            _p: PhantomData,
+            _pattern: PhantomData,
         }
     }
 
