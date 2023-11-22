@@ -70,15 +70,13 @@ pub fn try_patch(code: String, manifest: &Manifest) -> Result {
                         manifest_patch.code
                     );
                     code
-                },
+                }
             };
 
             let import_string = match &manifest_patch.imports {
                 Some(imports) => imports
                     .iter()
-                    .map(|imp| {
-                        vec![imp.alias.to_owned(), format!("\"{}\"", imp.path)].join(" ")
-                    })
+                    .map(|imp| [imp.alias.to_owned(), format!("\"{}\"", imp.path)].join(" "))
                     .collect::<Vec<String>>()
                     .join("\n"),
                 None => String::new(),

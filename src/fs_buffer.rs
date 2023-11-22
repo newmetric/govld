@@ -21,7 +21,7 @@ impl FsBuffer {
             None => self.load_from_file(file.clone()),
         }
     }
-    
+
     pub fn try_load(&mut self, file: String) -> Option<String> {
         match self.inner.get(&file) {
             Some(v) => Some(v.to_owned()),
@@ -37,10 +37,10 @@ impl FsBuffer {
         self.inner.insert(path, content.clone());
         content
     }
-    
+
     pub fn try_load_from_file(&mut self, path: String) -> Option<String> {
         let prefix_path = self.join_path(&self.path_prefix, &path);
-        let content = std::fs::read_to_string(&prefix_path).ok()?;
+        let content = std::fs::read_to_string(prefix_path).ok()?;
         self.inner.insert(path, content.clone());
         Some(content)
     }

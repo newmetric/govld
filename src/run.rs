@@ -165,7 +165,7 @@ pub fn do_run(cwd: &str, args: Args) {
     // imports append import ( ... ) section at the top of the file
     // but after the "package ..." declaration, using safe_range
     for (path, imports_collected) in imports {
-        let import_statements = vec![
+        let import_statements = [
             "import (",
             format!("\t{}", imports_collected.join("\n")).as_str(),
             ")",
