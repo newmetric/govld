@@ -66,18 +66,18 @@ impl<P: Pattern> Parser<P> {
         let mut cursor = tree_sitter::QueryCursor::new();
         let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
 
-        let next = cursor
+        cursor
             .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
                 let cb = self.code.as_bytes();
                 let slice = &cb[node.byte_range()];
+
                 std::iter::once(slice)
             })
             .find_map(|m| {
                 let patt = P::from_match(&m, &self.code);
-                predicate(&patt).then(|| P::replace(&m, &self.code))
-            });
 
-        next
+                predicate(&patt).then(|| P::replace(&m, &self.code))
+            })
     }
 }
 
