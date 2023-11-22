@@ -84,36 +84,27 @@ impl<P: Pattern> Parser<P> {
 #[cfg(test)]
 mod tests {
     use super::Parser;
-    use crate::patterns;
+    use crate::patterns::{self, func_decl::FunctionDeclPattern};
 
     #[test]
     fn test_parser() {
-        let source: &str = r#"package main
-
-func internal() {
-println("Hello, Foo!")
-}
-func internal2() {
-println("Hello, Foo!")
-}
-        "#;
+        let source = include_str!("./test_parser.go");
         let parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
         let next = parser.find_first_match();
 
-        assert!(next.is_some());
+        assert_eq!(
+            next,
+            Some(FunctionDeclPattern {
+                name: "internal".to_owned(),
+                param_t: "()".to_owned(),
+                return_t: String::new(),
+            })
+        );
     }
 
     #[test]
     fn test_find_and_replace() {
-        let source: &str = r#"package main
-
-func internal() {
-println("Hello, Foo!")
-}
-func internal2() {
-println("Hello, Foo!")
-}
-    "#;
+        let source = include_str!("./test_parser.go");
 
         let patch: &str = r#"
 func internal() {
@@ -124,7 +115,19 @@ println("Hello, World!")
         let patch_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(patch);
         let patch_target = patch_parser.find_first_match().unwrap();
 
+        assert_eq!(
+            patch_target,
+            FunctionDeclPattern {
+                name: "internal".to_owned(),
+                param_t: "()".to_owned(),
+                return_t: String::new(),
+            }
+        );
+
         let source_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
-        source_parser.find_and_patch(|f| f.name == patch_target.name);
+        let result = source_parser.find_and_patch(|f| f.name == patch_target.name);
+
+        let expected = "package main\n\nfunc internal__replaced_by_function_decl() {\n\tprintln(\"Hello, Foo!\")\n}\nfunc internal2() {\n\tprintln(\"Hello, Foo!\")\n}\n";
+        assert_eq!(result, Some(expected.to_owned()))
     }
 }
