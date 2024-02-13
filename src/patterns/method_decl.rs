@@ -52,7 +52,7 @@ impl Pattern for MethodDeclPattern {
     }
 
     fn append_suffix(matched: &tree_sitter::QueryMatch, codebuf: &str) -> String {
-        let fn_name_capture = matched.captures[1];
+        let fn_name_capture = matched.captures[2];
         let fn_name = &codebuf[fn_name_capture.node.byte_range()];
 
         let mut next = codebuf.to_string();
