@@ -45,7 +45,7 @@ impl Pattern for StructDeclPattern {
         }
     }
 
-    fn replace(matched: &QueryMatch, codebuf: &str) -> String {
+    fn append_suffix(matched: &QueryMatch, codebuf: &str) -> String {
         let struct_name_capture = matched.captures[1];
         let struct_name = &codebuf[struct_name_capture.node.byte_range()];
 
@@ -54,6 +54,14 @@ impl Pattern for StructDeclPattern {
             struct_name_capture.node.byte_range(),
             &format!("{}_{}", struct_name, "_replaced_by_struct_decl"),
         );
+        next
+    }
+
+    fn delete(matched: &QueryMatch, codebuf: &str) -> String {
+        let struct_capture = matched.captures[0];
+
+        let mut next = codebuf.to_owned();
+        next.replace_range(struct_capture.node.byte_range(), "");
         next
     }
 

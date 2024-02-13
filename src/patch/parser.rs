@@ -76,7 +76,25 @@ impl<P: Pattern> Parser<P> {
             .find_map(|m| {
                 let patt = P::from_match(&m, &self.code);
 
-                predicate(&patt).then(|| P::replace(&m, &self.code))
+                predicate(&patt).then(|| P::append_suffix(&m, &self.code))
+            })
+    }
+
+    pub fn find_and_delete(&self, predicate: impl Fn(&P) -> bool) -> Option<String> {
+        let mut cursor = tree_sitter::QueryCursor::new();
+        let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
+
+        cursor
+            .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
+                let cb = self.code.as_bytes();
+                let slice = &cb[node.byte_range()];
+
+                std::iter::once(slice)
+            })
+            .find_map(|m| {
+                let patt = P::from_match(&m, &self.code);
+
+                predicate(&patt).then(|| P::delete(&m, &self.code))
             })
     }
 }
@@ -98,6 +116,7 @@ mod tests {
                 name: "internal".to_owned(),
                 param_t: "()".to_owned(),
                 return_t: String::new(),
+                fn_itself: "func internal() {\n\tprintln(\"Hello, Foo!\")\n}".to_owned(),
             })
         );
     }
@@ -121,6 +140,7 @@ println("Hello, World!")
                 name: "internal".to_owned(),
                 param_t: "()".to_owned(),
                 return_t: String::new(),
+                fn_itself: "func internal() {\nprintln(\"Hello, World!\")\n}".to_owned(),
             }
         );
 
@@ -128,6 +148,32 @@ println("Hello, World!")
         let result = source_parser.find_and_patch(|f| f.name == patch_target.name);
 
         let expected = "package main\n\nfunc internal__replaced_by_function_decl() {\n\tprintln(\"Hello, Foo!\")\n}\nfunc internal2() {\n\tprintln(\"Hello, Foo!\")\n}\n";
+        assert_eq!(result, Some(expected.to_owned()))
+    }
+
+    #[test]
+    fn test_find_and_delete() {
+        let source = include_str!("./test_parser.go");
+
+        let patch: &str = r#"func internal() {}"#;
+
+        let patch_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(patch);
+        let patch_target = patch_parser.find_first_match().unwrap();
+
+        assert_eq!(
+            patch_target,
+            FunctionDeclPattern {
+                name: "internal".to_owned(),
+                param_t: "()".to_owned(),
+                return_t: String::new(),
+                fn_itself: "func internal() {}".to_owned(),
+            }
+        );
+
+        let source_parser = Parser::<patterns::func_decl::FunctionDeclPattern>::new(source);
+        let result = source_parser.find_and_delete(|f| f.name == patch_target.name);
+
+        let expected = "package main\n\n\nfunc internal2() {\n\tprintln(\"Hello, Foo!\")\n}\n";
         assert_eq!(result, Some(expected.to_owned()))
     }
 }

@@ -1,10 +1,10 @@
 package internal
 
 import (
-	a "unsafe"
-)
+	"fmt"
 
-import (
+	a "unsafe"
+
 	b "unsafe"
 )
 
@@ -36,8 +36,26 @@ type iface interface {
 	B() int
 }
 
-type FooButDifferent struct {}
+type FooButDifferent struct{}
 
 func (f FooButDifferent) privateMethod() string {
 	return ",mmmm"
+}
+
+type uselessInterface interface {
+	a()
+}
+
+type uselessStruct struct {
+	a int
+}
+
+var uselessVariable int
+
+func uselessFunction() {
+	fmt.Println("useless log")
+}
+
+func (u uselessStruct) uselessMethod() {
+	fmt.Println("useless log")
 }
