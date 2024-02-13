@@ -9,7 +9,7 @@ const S_EXP: &str = r#"
         name: (field_identifier) @name
         parameters: (parameter_list) @params
         result: (type_identifier)? @return
-    )@method_decl
+    ) @method_decl
 )+"#;
 
 const REPLACE_SUFFIX: &str = "_replaced_by_method_decl";

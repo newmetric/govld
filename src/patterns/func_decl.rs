@@ -6,7 +6,7 @@ const S_EXP: &str = r#"
         name: (identifier) @name
         parameters: (parameter_list) @params
         result: (type_identifier)? @return
-    )@func_decl
+    ) @func_decl
 )+"#;
 
 const REPLACE_SUFFIX: &str = "_replaced_by_function_decl";
