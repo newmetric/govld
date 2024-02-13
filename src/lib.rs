@@ -58,6 +58,7 @@ pub fn try_patch(code: String, manifest: &Manifest) -> Result {
                 manifest_patch.pattern.as_str(),
                 code.to_owned(),
                 manifest_patch.code.to_owned(),
+                manifest_patch.patch_type.clone(),
             );
 
             // run may have returned None if no matching pattern is found

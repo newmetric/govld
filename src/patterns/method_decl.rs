@@ -9,7 +9,7 @@ const S_EXP: &str = r#"
         name: (field_identifier) @name
         parameters: (parameter_list) @params
         result: (type_identifier)? @return
-    )
+    )@method_decl
 )+"#;
 
 const REPLACE_SUFFIX: &str = "_replaced_by_method_decl";
@@ -20,6 +20,7 @@ pub struct MethodDeclPattern {
     pub name: String,
     pub param_t: String,
     pub return_t: String,
+    pub method_itself: String,
 }
 
 impl Pattern for MethodDeclPattern {
@@ -32,10 +33,11 @@ impl Pattern for MethodDeclPattern {
     }
 
     fn from_match(matched: &tree_sitter::QueryMatch, code: &str) -> Self {
-        let receiver = &code[matched.captures[0].node.byte_range()];
-        let fn_name = &code[matched.captures[1].node.byte_range()];
-        let fn_param_t = &code[matched.captures[2].node.byte_range()];
-        let fn_return_t = match matched.captures.get(3) {
+        let method_itself = &code[matched.captures[0].node.byte_range()];
+        let receiver = &code[matched.captures[1].node.byte_range()];
+        let fn_name = &code[matched.captures[2].node.byte_range()];
+        let fn_param_t = &code[matched.captures[3].node.byte_range()];
+        let fn_return_t = match matched.captures.get(4) {
             Some(cap) => &code[cap.node.byte_range()],
             None => "",
         };
@@ -45,10 +47,11 @@ impl Pattern for MethodDeclPattern {
             name: fn_name.to_string(),
             param_t: fn_param_t.to_string(),
             return_t: fn_return_t.to_string(),
+            method_itself: method_itself.to_string(),
         }
     }
 
-    fn replace(matched: &tree_sitter::QueryMatch, codebuf: &str) -> String {
+    fn append_suffix(matched: &tree_sitter::QueryMatch, codebuf: &str) -> String {
         let fn_name_capture = matched.captures[1];
         let fn_name = &codebuf[fn_name_capture.node.byte_range()];
 
@@ -57,6 +60,14 @@ impl Pattern for MethodDeclPattern {
             fn_name_capture.node.byte_range(),
             &format!("{}_{}", fn_name, REPLACE_SUFFIX),
         );
+        next
+    }
+
+    fn delete(matched: &tree_sitter::QueryMatch, codebuf: &str) -> String {
+        let method_capture = matched.captures[0];
+
+        let mut next = codebuf.to_string();
+        next.replace_range(method_capture.node.byte_range(), "");
         next
     }
 

@@ -27,8 +27,12 @@ impl Pattern for ModuleDeclPattern {
         }
     }
 
-    fn replace(_: &tree_sitter::QueryMatch, _: &str) -> String {
+    fn append_suffix(_: &tree_sitter::QueryMatch, _: &str) -> String {
         panic!("ModuleDeclPattern::replace() not implemented")
+    }
+
+    fn delete(_: &tree_sitter::QueryMatch, _: &str) -> String {
+        panic!("ModuleDeclPattern::delete() not implemented")
     }
 
     fn is_match(&self, _: &Self) -> bool {
