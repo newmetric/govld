@@ -67,6 +67,7 @@ pub fn run<P: Pattern>(
                     .unwrap_or_else(|| panic!("error finding target pattern")),
             )
         }),
+        // default behavior
         _ => source_parser.find_and_patch(|pat| {
             pat.is_match(
                 &target_parser
