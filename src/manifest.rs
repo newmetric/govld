@@ -1,7 +1,6 @@
 use std::path::Path;
 
-use serde::Deserializer;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Deserialize, PartialEq, Debug, Clone)]
 pub struct Manifest {
@@ -35,18 +34,19 @@ where
     D: Deserializer<'de>,
 {
     let s: Option<&str> = Deserialize::deserialize(deserializer)?;
-    println!("{s:?}");
-
     let Some(s) = s else {
         return Ok(None);
     };
 
-    // do better hex decoding than this
-    match s {
-        "clone" => Ok(Some(PatchType::Clone)),
-        "overwrite" => Ok(Some(PatchType::Overwrite)),
-        _ => Err(serde::de::Error::custom("invalid patch type")),
-    }
+    Ok(Some(match s.to_lowercase().as_str() {
+        "clone" => PatchType::Clone,
+        "overwrite" => PatchType::Overwrite,
+        _ => {
+            return Err(serde::de::Error::custom(
+                "invalid patch type, supported: [\"clone\", \"overwrite\"]",
+            ))
+        }
+    }))
 }
 
 #[derive(Deserialize, PartialEq, Debug, Clone)]
