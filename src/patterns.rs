@@ -32,7 +32,7 @@ pub fn try_run(
     pattern: &str,
     code: String,
     patch: String,
-    patch_type: Option<PatchType>,
+    patch_type: Option<&PatchType>,
 ) -> Option<String> {
     macro_rules! run {
         ($ty: ty) => {
@@ -57,7 +57,7 @@ pub fn try_run(
 pub fn run<P: Pattern>(
     source_parser: &Parser<P>,
     target_parser: &Parser<P>,
-    patch_type: Option<PatchType>,
+    patch_type: Option<&PatchType>,
 ) -> Option<String> {
     match patch_type {
         Some(PatchType::Overwrite) => source_parser.find_and_delete(|pat| {
