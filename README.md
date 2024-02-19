@@ -116,6 +116,36 @@ patch:
 
 ```
 
+### Patch Types
+
+There are two types of patching available: `clone` and `overwrite`.
+
+#### clone(default)
+
+`clone` will generate the code with a list of patches, and append them to the end of the file.
+Add the suffix to the original symbol name if it exists.
+e.g. `func say() string` will be replaced as `func say__replaced_by_function_decl() string`
+
+```yaml
+# sample patch manifest
+file: github.com/fake-organization/pkg_b/internal/module.go
+patch:
+  patch_type: clone
+  ...
+```
+
+#### overwrite
+
+`overwrite` is same as clone, but it will overwrite the original symbol if it exists.
+
+```yaml
+# sample patch manifest
+file: github.com/fake-organization/pkg_b/internal/module.go
+patch:
+  patch_type: overwrite
+  ...
+```
+
 
 ### Postprocess
 
