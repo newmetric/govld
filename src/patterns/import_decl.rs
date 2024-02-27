@@ -1,14 +1,14 @@
 use crate::patterns::Pattern;
 
-use log::warn;
-
 const S_EXP: &str = r#"
 (source_file
     (import_declaration
-        (import_spec
-            (package_identifier) @import_name
-            (interpreted_string_literal) @import_path
-        ) @import_spec
+        (import_spec_list
+            (import_spec
+                (package_identifier)? @import_name
+                (interpreted_string_literal) @import_path
+            ) @import_spec
+        )
     )
 )+"#;
 
@@ -18,7 +18,7 @@ const REPLACE_SUFFIX: &str = "_replaced_by_import_decl";
 pub struct ImportDeclPattern {
     pub import_name: String,
     pub import_path: String,
-    pub import_itself: String,
+    pub import_spec: String,
 }
 
 impl Pattern for ImportDeclPattern {
@@ -31,14 +31,35 @@ impl Pattern for ImportDeclPattern {
     }
 
     fn from_match(matched: &tree_sitter::QueryMatch, code: &str) -> Self {
-        let import_itself = &code[matched.captures[0].node.byte_range()];
-        let import_name = &code[matched.captures[1].node.byte_range()];
-        let import_path = &code[matched.captures[2].node.byte_range()];
+        let import_spec;
+        let import_name;
+        let import_path;
+
+        let kinds = matched
+            .captures
+            .iter()
+            .map(|c| c.node.kind())
+            .collect::<Vec<_>>();
+
+        match kinds.as_slice() {
+            ["import_spec", "pacakge_identifier", "interpreted_string_literal"] => {
+                import_spec = &code[matched.captures[0].node.byte_range()];
+                import_name = &code[matched.captures[1].node.byte_range()];
+                import_path = &code[matched.captures[2].node.byte_range()];
+            }
+            ["import_spec", "interpreted_string_literal"] => {
+                import_spec = &code[matched.captures[0].node.byte_range()];
+                import_name = "";
+                import_path = &code[matched.captures[1].node.byte_range()];
+            }
+
+            other => unreachable!("invalid import_decl pattern: {:?}", other),
+        }
 
         Self {
             import_name: import_name.to_string(),
             import_path: import_path.to_string(),
-            import_itself: import_itself.to_string(),
+            import_spec: import_spec.to_string(),
         }
     }
 

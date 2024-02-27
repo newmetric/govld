@@ -27,3 +27,10 @@ patch:
     patch_type: overwrite
     code: |
       var uselessVariable string
+
+  - pattern: import_declaration
+    patch_type: delete
+    code: |
+      import (
+        "fmt"
+      )
