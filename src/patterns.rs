@@ -33,12 +33,13 @@ pub fn try_run(
     code: String,
     patch: String,
     patch_type: Option<&PatchType>,
-) -> Option<String> {
+) -> (Option<String>, Option<String>) {
     macro_rules! run {
         ($ty: ty) => {
             run(
                 &Parser::<$ty>::new(&code),
                 &Parser::<$ty>::new(&patch),
+                patch,
                 patch_type,
             )
         };
@@ -50,6 +51,7 @@ pub fn try_run(
         "struct_declaration" => run!(struct_decl::StructDeclPattern),
         "interface_declaration" => run!(interface_decl::InterfaceDeclPattern),
         "variable_declaration" => run!(variable_decl::VariableDeclPattern),
+        "import_declaration" => run!(import_decl::ImportDeclPattern),
         _ => panic!("unknown pattern: {}", pattern),
     }
 }
@@ -57,23 +59,40 @@ pub fn try_run(
 pub fn run<P: Pattern>(
     source_parser: &Parser<P>,
     target_parser: &Parser<P>,
+    patch: String,
     patch_type: Option<&PatchType>,
-) -> Option<String> {
+) -> (Option<String>, Option<String>) {
     match patch_type {
-        Some(PatchType::Overwrite) => source_parser.find_and_delete(|pat| {
-            pat.is_match(
-                &target_parser
-                    .find_first_match()
-                    .unwrap_or_else(|| panic!("error finding target pattern")),
-            )
-        }),
+        Some(PatchType::Overwrite) => {
+            let code = source_parser.find_and_delete(|pat| {
+                pat.is_match(
+                    &target_parser
+                        .find_first_match()
+                        .unwrap_or_else(|| panic!("error finding target pattern")),
+                )
+            });
+            (code, Some(patch))
+        }
+        Some(PatchType::Delete) => {
+            let code = source_parser.find_and_delete(|pat| {
+                pat.is_match(
+                    &target_parser
+                        .find_first_match()
+                        .unwrap_or_else(|| panic!("error finding target pattern")),
+                )
+            });
+            (code, None)
+        }
         // default behavior
-        _ => source_parser.find_and_patch(|pat| {
-            pat.is_match(
-                &target_parser
-                    .find_first_match()
-                    .unwrap_or_else(|| panic!("error finding target pattern")),
-            )
-        }),
+        _ => {
+            let code = source_parser.find_and_patch(|pat| {
+                pat.is_match(
+                    &target_parser
+                        .find_first_match()
+                        .unwrap_or_else(|| panic!("error finding target pattern")),
+                )
+            });
+            (code, Some(patch))
+        }
     }
 }
