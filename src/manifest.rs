@@ -27,6 +27,7 @@ impl Manifest {
 pub enum PatchType {
     Clone,
     Overwrite,
+    Delete,
 }
 
 fn patch_type_from_str<'de, D>(deserializer: D) -> Result<Option<PatchType>, D::Error>
@@ -41,6 +42,7 @@ where
     Ok(Some(match s.to_lowercase().as_str() {
         "clone" => PatchType::Clone,
         "overwrite" => PatchType::Overwrite,
+        "delete" => PatchType::Delete,
         _ => {
             return Err(serde::de::Error::custom(
                 "invalid patch type, supported: [\"clone\", \"overwrite\"]",
