@@ -3,6 +3,7 @@ use tree_sitter::QueryMatch;
 
 pub struct VariableDeclPattern {
     pub var_name: String,
+    pub var_type: String,
     pub var_itself: String,
 }
 
@@ -17,6 +18,7 @@ impl Pattern for VariableDeclPattern {
 	(var_declaration
     	(var_spec
         	name: (identifier) @name
+            type: (type_identifier)? @type
         )
     ) @var_decl
 )"#
@@ -25,10 +27,15 @@ impl Pattern for VariableDeclPattern {
     fn from_match(matched: &QueryMatch, code: &str) -> Self {
         let var_itself = &code[matched.captures[0].node.byte_range()];
         let var_name = &code[matched.captures[1].node.byte_range()];
+        let var_type = match matched.captures.get(2) {
+            Some(cap) => &code[cap.node.byte_range()],
+            None => "",
+        };
 
         Self {
             var_itself: var_itself.to_owned(),
             var_name: var_name.to_owned(),
+            var_type: var_type.to_owned(),
         }
     }
 
