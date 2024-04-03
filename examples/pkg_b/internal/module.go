@@ -8,6 +8,11 @@ import (
 	b "unsafe"
 )
 
+var (
+	VarA = 0
+	VarB = 0
+)
+
 var k a.Pointer
 var m b.Pointer
 
