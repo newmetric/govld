@@ -18,7 +18,7 @@ impl Pattern for VariableDeclPattern {
 	(var_declaration
     	(var_spec
         	name: (identifier) @name
-            type: (type_identifier) @type
+            type: (type_identifier)? @type
         )
     ) @var_decl
 )"#

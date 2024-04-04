@@ -44,7 +44,7 @@ patch:
       type emptyStruct struct {
         notEmptyAnymore string
       }
-      
+
   # replacing interface
   - pattern: interface_declaration
     code: |
@@ -68,20 +68,25 @@ patch:
         C() bool
         Appended() uint64
       }
+  - pattern: variable_declaration
+    code: |
+      var VarA int = 100
+  - pattern: variable_declaration
+    code: |
+      var VarB int = 200
 
 # run this AFTER all patches are done
 postprocess:
-- file: github.com/fake-organization/pkg_b/internal/postprocess_target.go
-  patch:
-    - pattern: method_declaration
-      code: |
-        func postprocessed() {}
+  - file: github.com/fake-organization/pkg_b/internal/postprocess_target.go
+    patch:
+      - pattern: method_declaration
+        code: |
+          func postprocessed() {}
 
-# optional post process
-- file: github.com/fake-organization/pkg_b/internal/postprocess_target_xx.go
-  optional: true
-  patch:
-    - pattern: method_declaration
-      code: |
-        func postprocessed() {}
-
+  # optional post process
+  - file: github.com/fake-organization/pkg_b/internal/postprocess_target_xx.go
+    optional: true
+    patch:
+      - pattern: method_declaration
+        code: |
+          func postprocessed() {}
