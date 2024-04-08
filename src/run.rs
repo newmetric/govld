@@ -10,10 +10,13 @@ use std::process::{Command, Stdio};
 #[command()]
 pub struct Args {
     #[arg(short, long, default_value = "vendor")]
-    pub vendor_dir: String,
+    pub dir: String,
 
     #[arg(short, long, default_value = "false")]
     pub force: bool,
+
+    #[arg(short, long, default_value = "false")]
+    pub vendor: bool,
 
     pub patch_manifest_files: Vec<String>,
 }
@@ -24,15 +27,35 @@ pub fn do_run(cwd: &str, args: Args) {
         .filter_level(log::LevelFilter::Info)
         .init();
 
+    if args.vendor {
+        run_vendor(cwd, args)
+    } else {
+        run_common(cwd, args)
+    }
+}
+
+pub fn run_common(cwd: &str, args: Args) {
+    let dir = format!("{}/{}", cwd, args.dir);
+
+    info!("dir: {}", &dir);
+
+    run(cwd, dir, args.patch_manifest_files)
+}
+
+pub fn run_vendor(cwd: &str, args: Args) {
     // if clean mode, try to do a clean setup
-    safe_check(args.force, cwd, &args.vendor_dir);
+    safe_check(args.force, cwd, &args.dir);
 
-    // organise vendor dir
-    let vendor_dir = format!("{}/{}", cwd, args.vendor_dir);
+    let vendor_dir = format!("{}/{}", cwd, args.dir);
 
+    info!("vendor dir: {}", &vendor_dir);
+
+    run(cwd, vendor_dir, args.patch_manifest_files)
+}
+
+pub fn run(cwd: &str, dir: String, patch_manifest_files: Vec<String>) {
     // organise patch files
-    let patch_manifest_files = args
-        .patch_manifest_files
+    let patch_manifest_files = patch_manifest_files
         .iter()
         .map(|p| {
             let path = PathBuf::new().join(cwd).join(p.clone());
@@ -46,12 +69,11 @@ pub fn do_run(cwd: &str, args: Args) {
         })
         .collect::<Vec<_>>();
 
-    info!("vendor dir: {}", &vendor_dir);
     info!("patch manifest files: {:?}", &patch_manifest_files);
 
     // for each patch manifest file, try to patch
     // define code buf cache to avoid re-reading the same file
-    let fsb = &mut FsBuffer::new(vendor_dir);
+    let fsb = &mut FsBuffer::new(dir);
 
     // patches is a global buffer for all patches to be made
     let patches: HashMap<String, Vec<String>> = HashMap::new();
