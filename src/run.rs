@@ -3,39 +3,38 @@ use crate::manifest::Manifest;
 use crate::try_patch;
 use log::{error, info};
 use std::collections::HashMap;
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::path::{Path, PathBuf};
 
 #[derive(clap::Parser, Debug)]
 #[command()]
 pub struct Args {
     #[arg(short, long, default_value = "vendor")]
-    pub vendor_dir: String,
-
-    #[arg(short, long, default_value = "false")]
-    pub force: bool,
+    pub dir: String,
 
     pub patch_manifest_files: Vec<String>,
 }
 
-pub fn do_run(cwd: &str, args: Args) {
+pub fn do_run(cwd: impl AsRef<Path>, args: Args) {
     // force info level
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
-        .init();
+    let mut builder = env_logger::builder();
+    let mut builder = &mut builder;
+    if let Ok(env) = std::env::var("LOG_LEVEL") {
+        builder = builder.parse_filters(&env);
+    }
+    builder.init();
 
-    // if clean mode, try to do a clean setup
-    safe_check(args.force, cwd, &args.vendor_dir);
+    let dir = cwd.as_ref().join(args.dir);
+    info!("dir: {}", dir.display());
 
-    // organise vendor dir
-    let vendor_dir = format!("{}/{}", cwd, args.vendor_dir);
+    run(cwd, dir, args.patch_manifest_files)
+}
 
+pub fn run(cwd: impl AsRef<Path>, dir: PathBuf, patch_manifest_files: Vec<String>) {
     // organise patch files
-    let patch_manifest_files = args
-        .patch_manifest_files
+    let patch_manifest_files = patch_manifest_files
         .iter()
         .map(|p| {
-            let path = PathBuf::new().join(cwd).join(p.clone());
+            let path = PathBuf::new().join(&cwd).join(p.clone());
             path.exists().then(|| path.clone()).unwrap_or_else(|| {
                 error!(
                     "error getting patch manifest file: {}",
@@ -46,12 +45,11 @@ pub fn do_run(cwd: &str, args: Args) {
         })
         .collect::<Vec<_>>();
 
-    info!("vendor dir: {}", &vendor_dir);
     info!("patch manifest files: {:?}", &patch_manifest_files);
 
     // for each patch manifest file, try to patch
     // define code buf cache to avoid re-reading the same file
-    let fsb = &mut FsBuffer::new(vendor_dir);
+    let fsb = &mut FsBuffer::new(&dir);
 
     // patches is a global buffer for all patches to be made
     let patches: HashMap<String, Vec<String>> = HashMap::new();
@@ -188,26 +186,4 @@ pub fn do_run(cwd: &str, args: Args) {
 
     // actually write to file
     fsb.flush();
-}
-
-fn safe_check(force: bool, cwd: &str, vendor_dir: &str) {
-    // check if vendor dir exists; fail if yes
-    if !force {
-        PathBuf::from(vendor_dir).exists().then(|| {
-            error!("vendor dir already exists: {}", vendor_dir);
-            std::process::exit(127);
-        });
-    }
-
-    // run go mod vendor
-    Command::new("go")
-        .current_dir(cwd)
-        .args(["mod", "vendor"])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .unwrap()
-        // wait for it to end
-        .wait_with_output()
-        .unwrap();
 }
