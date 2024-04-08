@@ -1,8 +1,7 @@
 # newmetric/govld
 
-`govld` is a custom linker (or kind of..) for Go, allowing patches without forking/replacing in the `go.mod`.
-
-`govld` works by first running `go mod vendor` to bring all dependencies to local, then patching listed files in the manifests provided.
+'govld' is a code tool that adds/replaces code 'Go' according to a pre-written manifest files.
+(Originally created only to modify files within the vendor folder, but now all files are targeted.)
 
 ## How to Install?
 
@@ -17,10 +16,8 @@ CARGO_NET_GIT_FETCH_WITH_CLI=true cargo install govld --git https://github.com/n
 ## Usage
 
 ```bash
-govld [-f] [-v=vendor_directory] -- [list_of_manifests.yaml]
+govld [-d=directory] -- [list_of_manifests.yaml]
 ```
-
-- `-f/--force (default=false)` runs `go mod vendor` forcibly before patching.
 
 ## Manifest File
 
