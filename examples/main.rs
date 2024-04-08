@@ -9,8 +9,6 @@ fn main() {
         cwd_fix.to_str().unwrap(),
         govld::run::Args {
             dir: "vendor".to_string(),
-            force: true,
-            vendor: true,
             patch_manifest_files: vec![
                 "../patch.yaml".to_string(),
                 "../patch_optional.yaml".to_string(),
