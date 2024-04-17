@@ -1,6 +1,6 @@
 [package]
 name = "govld"
-version = "0.1.0"
+version = "0.0.14"
 edition = "2021"
 exclude = ["benchmarks", "examples", "bindings", "scripts", "experiments"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
