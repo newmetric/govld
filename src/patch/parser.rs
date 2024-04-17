@@ -16,7 +16,7 @@ impl<P: Pattern> Parser<P> {
         let language = tree_sitter_go::language();
 
         parser
-            .set_language(language)
+            .set_language(&language)
             .expect("error loading Go grammar");
 
         let tree = parser.parse(code, None).unwrap();
@@ -33,7 +33,7 @@ impl<P: Pattern> Parser<P> {
     // useful for searching for a single match for a target pattern
     pub fn find_first_match(&self) -> Option<P> {
         let mut cursor = tree_sitter::QueryCursor::new();
-        let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
+        let query = tree_sitter::Query::new(&self.language, P::sexp()).expect("query is invalid");
 
         cursor
             .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
@@ -47,7 +47,7 @@ impl<P: Pattern> Parser<P> {
 
     pub fn find_next_line(&self) -> Option<Range<usize>> {
         let mut cursor = tree_sitter::QueryCursor::new();
-        let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
+        let query = tree_sitter::Query::new(&self.language, P::sexp()).expect("query is invalid");
 
         let last = cursor
             .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
@@ -64,7 +64,7 @@ impl<P: Pattern> Parser<P> {
     // otherwise append at the bottom
     pub fn find_and_patch(&self, predicate: impl Fn(&P) -> bool) -> Option<String> {
         let mut cursor = tree_sitter::QueryCursor::new();
-        let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
+        let query = tree_sitter::Query::new(&self.language, P::sexp()).expect("query is invalid");
 
         cursor
             .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
@@ -82,7 +82,7 @@ impl<P: Pattern> Parser<P> {
 
     pub fn find_and_delete(&self, predicate: impl Fn(&P) -> bool) -> Option<String> {
         let mut cursor = tree_sitter::QueryCursor::new();
-        let query = tree_sitter::Query::new(self.language, P::sexp()).expect("query is invalid");
+        let query = tree_sitter::Query::new(&self.language, P::sexp()).expect("query is invalid");
 
         cursor
             .matches(&query, self.tree.root_node(), |node: tree_sitter::Node| {
