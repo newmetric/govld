@@ -54,7 +54,7 @@ pub fn try_patch(code: String, manifest: &Manifest) -> Result {
     let (next_code, next_patches, next_imports) = manifest.patch.iter().fold(
         (code, patches, imports),
         |(code, mut patches, mut imports), manifest_patch| {
-            let run_result = try_run(
+            let (run_result, patch_code) = try_run(
                 manifest_patch.pattern.as_str(),
                 code.to_owned(),
                 manifest_patch.code.to_owned(),
@@ -83,8 +83,13 @@ pub fn try_patch(code: String, manifest: &Manifest) -> Result {
                 None => String::new(),
             };
 
+            let patch = match patch_code {
+                Some(patch_code) => patch_code,
+                None => "".to_string(),
+            };
+
             imports.push(import_string);
-            patches.push(manifest_patch.code.to_owned());
+            patches.push(patch);
 
             (next_code, patches, imports)
         },
