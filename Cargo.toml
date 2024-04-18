@@ -2,14 +2,23 @@
 name = "govld"
 version = "0.0.14"
 edition = "2021"
-exclude = ["benchmarks", "examples", "bindings", "scripts", "experiments"]
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.3.21", features = ["derive"] }
-env_logger = "0.11"
-log = "0.4.20"
-serde = { version = "1.0.183", features = ["derive"] }
-serde_yaml = "0.9.25"
+clap = { version = "4", features = ["derive"] }
+
 tree-sitter = "0.22"
 tree-sitter-go = "0.21"
+
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+
+similar = { version = "2", features = ["inline"] }
+console = "0.15"
+
+color-eyre = "0.6"
+
+[dev-dependencies]
+pretty_assertions = "1"
