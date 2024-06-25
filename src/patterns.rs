@@ -6,6 +6,7 @@ pub mod func_decl;
 pub mod method_decl;
 pub mod module_decl;
 
+mod const_decl;
 mod import_decl;
 mod interface_decl;
 mod struct_decl;
@@ -50,6 +51,7 @@ pub fn try_run(
         "struct_declaration" => run!(struct_decl::StructDeclPattern),
         "interface_declaration" => run!(interface_decl::InterfaceDeclPattern),
         "variable_declaration" => run!(variable_decl::VariableDeclPattern),
+        "const_declaration" => run!(const_decl::ConstDeclPattern),
         _ => panic!("unknown pattern: {}", pattern),
     }
 }
