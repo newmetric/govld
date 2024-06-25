@@ -18,7 +18,11 @@ impl Pattern for InterfaceDeclPattern {
 	(type_declaration
     	(type_spec
         	name: (type_identifier) @name
-            type: (interface_type)
+            type: (interface_type
+            	(method_elem
+                	name: [(field_identifier)] @field_name
+                )*
+            )
         )
     ) @interface_decl
 )"#
