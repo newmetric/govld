@@ -16,6 +16,9 @@ var (
 var k a.Pointer
 var m b.Pointer
 
+const ConstA int = 0
+const ConstB string = "string"
+
 func Say() string {
 	return say()
 }

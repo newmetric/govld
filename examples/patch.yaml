@@ -75,6 +75,13 @@ patch:
     code: |
       var VarB int = 200
 
+  - pattern: const_declaration
+    code: |
+      const ConstA int = 10
+  - pattern: const_declaration
+    code: |
+      const ConstB = "replaced"
+
 # run this AFTER all patches are done
 postprocess:
   - file: github.com/fake-organization/pkg_b/internal/postprocess_target.go
